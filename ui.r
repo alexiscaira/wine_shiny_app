@@ -1,6 +1,17 @@
 library(shiny)
+library(rmarkdown)
 
 fluidPage(
+  tags$style(HTML("
+    body {
+      font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+    }
+    
+    .shiny-html-output {
+      font-size: 1.15em;
+    }
+  ")),
+  
   titlePanel("🥂 White Wine Quality Estimator 🥂"),
   
   fluidRow(
@@ -38,7 +49,7 @@ Start by selecting a regression model, enter your predictor variable(s), then th
           var_choices,
           multiple = TRUE
         ),
-        uiOutput('m_xvalues')
+        uiOutput('m_xvalues'),
       )
     ),
     
@@ -52,5 +63,5 @@ Start by selecting a regression model, enter your predictor variable(s), then th
     verbatimTextOutput('prediction_output')
   )),
   
-  fluidRow(column(12, hr(), includeMarkdown("report.md")))
+  uiOutput('markdown')
 )

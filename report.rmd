@@ -1,0 +1,132 @@
+## About This Estimator 
+
+This application allows you to estimate the quality score of white wine (ranging from 0 to 10) based on its physiochemical properties.
+
+The prediction is based on various regression models fitted to the **UCI White Wine Quality Dataset**.
+
+<details>
+<summary> ⬇️ What is simple linear regression?</summary>
+Simple linear regression is the process of looking at how a single variable affects the predicted variable. For this application, we’ll be predicting the quality variable, so we’ll let the user examine how a single variable can change the estimated predicted value of the quality. Users can input a value for x (the variable we’ll be examining) and then based on the model, predict what the wine quality will be scored based on past data for the x value from the data set. This is found with the linear regression line we’ve fitted (colored red on the plot), where the residual is how far the estimate is off of the line (otherwise, how far off the model is from the estimate.) 
+</details>
+
+</br>
+
+<details>
+<summary> ⬇️ What is multiple linear regression? </summary>
+Multiple linear regression is the process of looking at how multiple variables affect the predicted variable. For this application, we’ll be predicting the quality variable, so we’ll let the user examine how multiple variables can change the estimated predicted value of the quality.  Users can input values for x (the variables we’ll be examining) and then based on the model, predict what the wine quality will be scored based on past data for the x values from the data set. This is found with the multiple linear regression line we’ve fitted (colored red on the plot), where the residual is how far the estimate is off of the line (otherwise, how far off the model is from the estimate.) 
+</details>
+
+</br>
+
+<details>
+<summary> ⬇️ What data was collected?</summary>
+The wine used is the white wine of vinho verde, which is from the northwest region of Minho, Portugal. The original data set includes both red and white whites, but this application uses exclusively white as the author only likes white wine and red white stains one’s teeth. The physicochemical data included per wine type includes the following:
+
+- Fixed acidity (g(tartaric acid)/dm^3^ )
+- Volatile acidity (g(acetic acid)/dm^3^  )
+- Citric acid (g/dm^3^  )
+- Residual sugar (g/dm^3^  )
+- Chlorides (g(sodium chloride)/dm^3^  )
+- Free sulfur dioxide (mg/dm^3^  )
+- Total sulfur dioxide (mg/dm^3^  )
+- Density (g/cm^3^  )
+- pH
+- Sulphates (g(potassium sulphate)/dm^3^  )
+- Alcohol (vol.%)
+- Quality (scale of 0-10)
+
+</details>
+
+</br>
+
+<details>
+<summary> ⬇️ Why this topic is interesting?</summary>
+This topic was interesting to me since I drink wine myself and although I am no wine connoisseur, the science behind what makes one bottle better than another is always something I found interesting. If a vineyard is able to understand what to focus on for the greatest impact on their wine quality, there’s a business need here solved for instead of a guess and check methodology. Grape harvesting is a long science that takes a whole growth cycle to see if it yields results, which costs time, energy, and money, so if there’s a way to be methodical and scientific about it, it’s worth pursuing (and already has been!) 
+</details>
+
+</br>
+
+<details>
+<summary>⬇️ How was the data analyzed?</summary>
+The data was analyzed using two approaches, one being a linear regression model and the second being a multiple linear regression model.  This allows the users of the application to change the regression type to see how it fits best, and also allows the user to choose how many variables they would like to put a value in for.  The data was split 80% training data, 20% test data using the `library(splitTools)` and the graphs were created with `library(ggplot2).` The prediction value was calculated using the `predict()` function with the data passed in. From there, the tool can be used to view the regression line for correlation and the linear regression tools can be analyzed for seeing how well the model fits to the data. 
+</details>
+
+</br>
+
+<details>
+<summary>⬇️ Data Findings</summary>
+
+To investigate the data, we can examine more of what makes up the data set. 
+
+```{r}
+library(ggplot2)
+
+ggplot(wine_data, aes(x = factor(quality))) +
+  geom_bar(fill = "#5F7470", color = "white") +
+  labs(
+    title = "Distribution of Wine Quality Scores",
+    x = "Quality Score (0-10)",
+    y = "Number of Wines"
+  ) +
+  theme_minimal()
+```
+
+
+Based on the graph it's clear that the selection of wine data is predominantly average rating, with few outliers. The use of whole numbers also makes for a very linear display of data. For this application, it’s worth considering how well a linear regression or multiple linear regression fits our data and how often the prediction estimates are off. To do this, we can calculate several data points from the regression with the lm() function in r.
+
+```{r}
+library(splitTools)
+
+set.seed(42)
+
+indices <- partition(
+  y = wine_data$quality,
+  p = c(train = 0.8, test = 0.2),
+  type = "stratified"
+)
+
+train_data <- wine_data[indices$train, ]
+
+formula_str <- quality ~ alcohol
+chlorides_lm <- lm(formula_str, data = train_data)
+summary(chlorides_lm)
+```
+ 
+From this we can see that single values like chlorides can attribute some impact some of the quality, but the model is overall a weak fit (seen by the adjusted R square value of 0.04663.) The code sample was ran against all variable options in the application, and we found that alcohol is the best individual impact variable on wine quality score, but even then the impact is not statically significant. For some variables, like citric acid or free sulfur dioxide, there is an extremely low impact on the quality, 
+
+| Predictor Variable | Multiple R-squared | Adjusted R-squared |
+| :--- | :--- | :--- |
+| **Alcohol** | **0.1982** | **0.1979** |
+| **Density** | 0.1013 | 0.1010 |
+| **Chlorides** |  0.04663 | 0.04639 |
+| **Volatile Acidity** | 0.04200 | 0.04175 |
+| **Total Sulfur Dioxide** | 0.03220 | 0.03196 |
+| **Fixed Acidity** | 0.01236 | 0.01211 |
+| **pH** | 0.01102 | 0.01077 |
+| **Residual Sugar** | 0.01018 | 0.009927 |
+| **Sulphates** | 0.00425 | 0.003995 |
+| **Citric Acid** | 2.564e-05 | -0.0002297 |
+| **Free Sulfur Dioxide** | 1.254e-05 | -0.0002428 |
+
+To test the theory that multiple variables impact the quality in conjunction, we can run the same test against multiple variables, taking the top five R squared from the table.   
+
+```{r}
+library(splitTools)
+set.seed(42)
+
+indices <- partition(
+  y = wine_data$quality,
+  p = c(train = 0.8, test = 0.2),
+  type = "stratified"
+)
+
+train_data <- wine_data[indices$train, ]
+
+formula_str <- quality ~ alcohol + density + chlorides + volatile.acidity + total.sulfur.dioxide
+multiple_lm <- lm(formula_str, data = train_data)
+summary(multiple_lm)
+```
+
+This also yielded some poor values and nothing that points to a strong fit, with the five variables resulting in an multiple R-squared of 0.2586, which is an improvement than the single variables. Because of this, further regression work should be conducted in future development, like including logistic regression.
+
+</details>
